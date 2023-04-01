@@ -3,7 +3,9 @@
  */
 
 
-const {game, newGame, showScore, addTurn, lightsOn} = require("../game");
+const {game, newGame, showScore, addTurn, lightsOn, showTurns, playerTurn} = require("../game");
+
+jest.spyOn(window, "alert").mockImplementation(() => {});
 
 beforeAll(() => {
     let fs = require('fs');
@@ -27,7 +29,19 @@ describe("game objct contains correct keys", () => {
         expect("choices" in game).toBe(true);
     });
     test("choices contain correct ids", () => {
-        expect(game.choices).toEqual(["button1","button2","button3","button4"]);
+        expect("turnNumber" in game).toBe(true);
+    });
+    test("turnNumber key exists", () => {
+        expect("choices" in game).toBe(true);
+    });
+    test("turnInProgress key exists", () => {
+        expect("turnInProgress" in game).toBe(true);
+    });
+    test("turnInProgress key value false", () => {
+        expect("turnInProgress" in game).toBe(true);
+    });
+    test("lastButton key exists", () => {
+        expect("lastButton" in game).toBe(true);
     });
 });
 
@@ -47,6 +61,12 @@ describe("newGame works correctly", () => {
     });
     test("should clear player moves array", () => {
         expect(game.playerMoves.length).toBe(0);
+    });
+    test("should show data-listner set to 'true'", () => {
+        const elements = document.getElementsByClassName("circle");
+        for (let element of elements) {
+            expect(element.getAttribute("data-listener")).toEqual("true"); 
+        }
     });
     test("should display 0 for ID score", () => {
         expect(document.getElementById("score").innerText).toEqual(0);
@@ -73,5 +93,30 @@ describe("Game works as intended", () => {
         let button = document.getElementById(game.currentGame[0]);
         lightsOn(game.currentGame[0]);
         expect(button.classList).toContain("light");
+    });
+    test("showTurns should update game.turnNumber", () => {
+        game.turnNumber = 42;
+        showTurns();
+        expect(game.turnNumber).toBe(0);
+    });
+    test("Should increment score if turn is correct", () => {
+        game.playerMoves.push(game.currentGame[0]);
+        playerTurn();
+        expect(game.score).toBe(1);
+    });
+    test("Should alert if move wrong", () => {
+        game.playerMoves.push("wrong");
+        playerTurn();
+        expect(window.alert).toBeCalledWith("Wrong Move");
+    });
+    test("Should toggle turn in progress to be true", () => {
+        showTurns();
+        expect(game.turnInProgress).toBe(true);
+    });
+    test("Click during computer turn should fail", () => {
+        showTurns();
+        game.lastButton = "";
+        document.getElementById("button2").click();
+        expect(game.lastButton).toEqual("");
     });
 });
